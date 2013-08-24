@@ -1,0 +1,17 @@
+#!/bin/bash
+
+GEM_HOME=vendor/bundle
+GEM_PATH=$GEM_HOME
+BUNDLE=$GEM_PATH/bin/bundle
+
+jruby="java -jar jruby-complete-1.7.4.jar"
+
+if [[ -x $BUNDLE ]]; then
+  echo "Found bundler $($BUNDLE --version)"
+else
+   $jruby -S gem install bundler
+fi
+
+$jruby $BUNDLE install --local
+
+$jruby $@
