@@ -28,13 +28,15 @@ def backup_dynamo_db
     :select => "ALL_ATTRIBUTES"
   }
 
+  start = Time.now
+
   begin
     file = Tempfile.open("dynamo_db", File.dirname(__FILE__))
     file << "["
 
     loop do
       data = client.scan(options).data
-      puts "count: #{data[:count].inspect}, scanned_count: #{data[:scanned_count].inspect}, batch: #{data[:member].map(&:inspect)}\n\n"
+      puts "fetched data, count: #{data[:count].inspect}, scanned_count: #{data[:scanned_count].inspect}"
 
       if data[:member].size > 0
         batch = data[:member].to_json
@@ -53,11 +55,17 @@ def backup_dynamo_db
 
     file << "]"
     file.close
+    puts "Fetched all DynamoDB table data in #{Time.now - start} seconds"
+
+    s3start = Time.now
     bucket.objects[table_name].write(:file => file.path)
+    puts "Uploaded to S3 in #{Time.now - s3start} seconds"
   ensure
     file.close
     file.unlink
   end
+
+  puts "Backed up in #{Time.now - start} seconds"
 end
 
 backup_dynamo_db
